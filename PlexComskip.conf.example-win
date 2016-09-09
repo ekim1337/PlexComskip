@@ -1,0 +1,32 @@
+[Helper Apps]
+
+# Path to the comskip binary.
+comskip-path: C:\Program Files (x86)\comskip\comskip.exe
+
+# Path to the comskip INI file. Defaults to the same directory as the PlexComskip script.
+# comskip-ini-path: ~/comskip.ini
+
+# Path to the ffmpeg binary.
+ffmpeg-path: C:\Program Files (x86)\ffmpeg\bin\ffmpeg.exe
+
+[Logging]
+
+# Log file location.
+logfile-path: %%LOCALAPPDATA%%\PlexComSkip\Logs\PlexComskip.log
+
+# Split the log output to the console? Useful for debugging.
+console-logging: True
+
+[File Manipulation]
+
+# Specify a temp directory for interstitial files. This should be local, fast, and have enough free space for ~2x your largest video. Defaults to system temp location.
+# temp-root: R:\Temp
+
+# Should we copy the original file to the temp directory? Useful if disk access to the original is slower than your temp location. Defaults to False.
+copy-original: False
+
+# Always save the intermediate files? Useful for debugging. Defaults to False.
+save-always: False
+
+# Save intermediate files when something goes wrong? Also useful for debugging and less space intensive. Defaults to True.
+save-forensics: True
