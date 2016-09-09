@@ -35,20 +35,6 @@ if CONSOLE_LOGGING:
 	console.setFormatter(formatter)
 	logging.getLogger('').addHandler(console)
 
-# This is a (brittle-as-hell) way to get direct access to the Part's files on different hosts that have the filesystem mounted in both places.
-# It assumes you have only Show/Episode or Show/Season/Episode hierarchy directly under your library root dir.
-# "in_path" is the path to the specific file given to us by PMS.
-# "out_root" is the path to the locally-mounted section root.
-#
-def convert_path(in_path, out_root):
-
-	head, ep = os.path.split(in_path)
-	if 'season' in os.path.split(head)[1].lower():
-		head, season = os.path.split(head)
-	head, show = os.path.split(head)
-	return os.path.join(out_root, show, ep)
-
-
 # Human-readable bytes.
 def sizeof_fmt(num, suffix='B'):
 
@@ -57,7 +43,6 @@ def sizeof_fmt(num, suffix='B'):
 			return "%3.1f%s%s" % (num, unit, suffix)
 		num /= 1024.0
 	return "%.1f%s%s" % (num, 'Y', suffix)
-
 
 if len(sys.argv) < 2:
 	print 'Usage: PlexComskip.py input-file.mkv'
