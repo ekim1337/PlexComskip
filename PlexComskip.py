@@ -27,6 +27,8 @@ SAVE_FORENSICS = config.getboolean('File Manipulation', 'save-forensics')
 # Logging.
 session_uuid = str(uuid.uuid4())
 fmt = '%%(asctime)-15s [%s] %%(message)s' % session_uuid[:6]
+if not os.path.exists(LOG_FILE_PATH):
+  os.makedirs(os.path.dirname(LOG_FILE_PATH))
 logging.basicConfig(level=logging.INFO, format=fmt, filename=LOG_FILE_PATH)
 if CONSOLE_LOGGING:
   console = logging.StreamHandler()
