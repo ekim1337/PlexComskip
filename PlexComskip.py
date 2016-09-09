@@ -14,12 +14,12 @@ import uuid
 config = ConfigParser.SafeConfigParser({'comskip-ini-path' : os.path.join(os.path.dirname(os.path.realpath(__file__)), 'comskip.ini'), 'temp-root' : tempfile.gettempdir()})
 config.read(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'PlexComskip.conf'))
 
-COMSKIP_PATH = os.path.expanduser(config.get('Helper Apps', 'comskip-path'))
-COMSKIP_INI_PATH = os.path.expanduser(config.get('Helper Apps', 'comskip-ini-path'))
-FFMPEG_PATH = os.path.expanduser(config.get('Helper Apps', 'ffmpeg-path'))
-LOG_FILE_PATH = os.path.expanduser(config.get('Logging', 'logfile-path'))
+COMSKIP_PATH = os.path.expandvars(os.path.expanduser(config.get('Helper Apps', 'comskip-path')))
+COMSKIP_INI_PATH = os.path.expandvars(os.path.expanduser(config.get('Helper Apps', 'comskip-ini-path')))
+FFMPEG_PATH = os.path.expandvars(os.path.expanduser(config.get('Helper Apps', 'ffmpeg-path')))
+LOG_FILE_PATH = os.path.expandvars(os.path.expanduser(config.get('Logging', 'logfile-path')))
 CONSOLE_LOGGING = config.getboolean('Logging', 'console-logging')
-TEMP_ROOT = os.path.expanduser(config.get('File Manipulation', 'temp-root'))
+TEMP_ROOT = os.path.expandvars(os.path.expanduser(config.get('File Manipulation', 'temp-root')))
 COPY_ORIGINAL = config.getboolean('File Manipulation', 'copy-original')
 SAVE_ALWAYS = config.getboolean('File Manipulation', 'save-always')
 SAVE_FORENSICS = config.getboolean('File Manipulation', 'save-forensics')
@@ -66,6 +66,7 @@ def cleanup_and_exit(temp_dir, keep_temp=False):
   logging.info('Done processing!')
   sys.exit(0)
 
+# On to the actual work.
 video_path = sys.argv[1]
 temp_dir = os.path.join(TEMP_ROOT, session_uuid)
 os.makedirs(temp_dir)
@@ -174,7 +175,7 @@ try:
     shutil.copy(os.path.join(temp_dir, video_basename), original_video_dir)
     cleanup_and_exit(temp_dir, SAVE_ALWAYS)
   else:
-    logging.info('Output file size looked wonky: %s -> %s' % (sizeof_fmt(input_size), sizeof_fmt(output_size)))
+    logging.info('Output file size looked wonky, we won\'t replace the original: %s -> %s' % (sizeof_fmt(input_size), sizeof_fmt(output_size)))
     cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
 except Exception, e:
   logging.error('Something went wrong during sanity check: %s' % e)
