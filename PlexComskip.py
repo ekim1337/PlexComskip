@@ -14,7 +14,7 @@ import uuid
 config_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'PlexComskip.conf')
 if not os.path.exists(config_file_path):
   print 'Config file not found: %s' % config_file_path
-  pring 'Make a copy of PlexConfig.conf.example, modify as necessary, and place in the same directory as this script.'
+  print 'Make a copy of PlexConfig.conf.example, modify as necessary, and place in the same directory as this script.'
   sys.exit(1)
 
 config = ConfigParser.SafeConfigParser({'comskip-ini-path' : os.path.join(os.path.dirname(os.path.realpath(__file__)), 'comskip.ini'), 'temp-root' : tempfile.gettempdir()})
