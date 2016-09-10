@@ -14,7 +14,7 @@ import uuid
 config_file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'PlexComskip.conf')
 if not os.path.exists(config_file_path):
   print 'Config file not found: %s' % config_file_path
-  print 'Make a copy of PlexConfig.conf.example, modify as necessary, and place in the same directory as this script.'
+  print 'Make a copy of PlexConfig.conf.example named PlexConfig.conf, modify as necessary, and place in the same directory as this script.'
   sys.exit(1)
 
 config = ConfigParser.SafeConfigParser({'comskip-ini-path' : os.path.join(os.path.dirname(os.path.realpath(__file__)), 'comskip.ini'), 'temp-root' : tempfile.gettempdir()})
@@ -33,7 +33,7 @@ SAVE_FORENSICS = config.getboolean('File Manipulation', 'save-forensics')
 # Logging.
 session_uuid = str(uuid.uuid4())
 fmt = '%%(asctime)-15s [%s] %%(message)s' % session_uuid[:6]
-if not os.path.exists(LOG_FILE_PATH):
+if not os.path.exists(os.path.dirname(LOG_FILE_PATH)):
   os.makedirs(os.path.dirname(LOG_FILE_PATH))
 logging.basicConfig(level=logging.INFO, format=fmt, filename=LOG_FILE_PATH)
 if CONSOLE_LOGGING:
