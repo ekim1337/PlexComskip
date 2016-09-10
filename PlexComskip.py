@@ -56,9 +56,7 @@ def cleanup_and_exit(temp_dir, keep_temp=False):
     logging.info('Leaving temp files in: %s' % temp_dir)
   else:
     try:
-      os.chdir(os.path.expanduser('~'))
-      logging.info('Waiting a few seconds for... Windows stuff? ...and then whacking temp dir: %s' % temp_dir)
-      time.sleep(5)
+      os.chdir(os.path.expanduser('~'))  # Get out of the temp dir before we nuke it (causes issues on NTFS)
       shutil.rmtree(temp_dir)
     except Exception, e:
       logging.error('Problem whacking temp dir: %s' % temp_dir)
