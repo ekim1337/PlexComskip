@@ -175,13 +175,16 @@ logging.info('Sanity checking our work...')
 try:
   input_size = os.path.getsize(video_path)
   output_size = os.path.getsize(os.path.join(temp_dir, video_basename))
-  if input_size and 1.1 > float(output_size) / float(input_size) > 0.5:
+  if input_size and 1.01 > float(output_size) / float(input_size) > 0.99:
+    logging.info('Output file size was too similar (doesn\'t look like we did much); we won\'t replace the original: %s -> %s' % (sizeof_fmt(input_size), sizeof_fmt(output_size)))
+    cleanup_and_exit(temp_dir, SAVE_ALWAYS)
+  elif input_size and 1.1 > float(output_size) / float(input_size) > 0.5:
     logging.info('Output file size looked sane, we\'ll replace the original: %s -> %s' % (sizeof_fmt(input_size), sizeof_fmt(output_size)))
     logging.info('Copying the output file into place: %s -> %s' % (video_basename, original_video_dir))
     shutil.copy(os.path.join(temp_dir, video_basename), original_video_dir)
     cleanup_and_exit(temp_dir, SAVE_ALWAYS)
   else:
-    logging.info('Output file size looked wonky, we won\'t replace the original: %s -> %s' % (sizeof_fmt(input_size), sizeof_fmt(output_size)))
+    logging.info('Output file size looked wonky (too big or too small); we won\'t replace the original: %s -> %s' % (sizeof_fmt(input_size), sizeof_fmt(output_size)))
     cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
 except Exception, e:
   logging.error('Something went wrong during sanity check: %s' % e)
