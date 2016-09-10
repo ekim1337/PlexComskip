@@ -72,19 +72,19 @@ def cleanup_and_exit(temp_dir, keep_temp=False):
   logging.info('Done processing!')
   sys.exit(0)
 
+# If we're in a git repo, let's see if we can report our sha.
+logging.info('PlexComskip got invoked from %s' % os.path.realpath(__file__))
+try:
+  git_sha = subprocess.check_output('git rev-parse --short HEAD', shell=True)
+  if git_sha:
+    logging.info('Using version: %s' % git_sha.strip())
+except: pass
+
 # On to the actual work.
 video_path = sys.argv[1]
 temp_dir = os.path.join(TEMP_ROOT, session_uuid)
 os.makedirs(temp_dir)
 os.chdir(temp_dir)
-
-# If we're in a git repo, let's see if we can report our sha.
-logging.info('PlexComskip got invoked from %s' % os.path.realpath(__file__))
-try:
-  git_sha = subprocess.check_output('git rev-parse HEAD', shell=True)
-  if git_sha:
-    logging.info('Using version: %s' % git_sha[:7])
-except: pass
 
 logging.info('Using session ID: %s' % session_uuid)
 logging.info('Using temp dir: %s' % temp_dir)
