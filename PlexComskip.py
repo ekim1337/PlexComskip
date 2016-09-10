@@ -78,10 +78,18 @@ temp_dir = os.path.join(TEMP_ROOT, session_uuid)
 os.makedirs(temp_dir)
 os.chdir(temp_dir)
 
+# If we're in a git repo, let's see if we can report our sha.
 logging.info('PlexComskip got invoked from %s' % os.path.realpath(__file__))
+try:
+  git_sha = subprocess.check_output('git rev-parse HEAD', shell=True)
+  if git_sha:
+    logging.info('Using version: %s' % git_sha[:7])
+except: pass
+
 logging.info('Using session ID: %s' % session_uuid)
 logging.info('Using temp dir: %s' % temp_dir)
 logging.info('Using input file: %s' % video_path)
+
 
 original_video_dir = os.path.dirname(video_path)
 video_basename = os.path.basename(video_path)
