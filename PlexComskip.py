@@ -81,19 +81,24 @@ try:
 except: pass
 
 # On to the actual work.
-video_path = sys.argv[1]
-temp_dir = os.path.join(TEMP_ROOT, session_uuid)
-os.makedirs(temp_dir)
-os.chdir(temp_dir)
+try:
+  video_path = sys.argv[1]
+  temp_dir = os.path.join(TEMP_ROOT, session_uuid)
+  os.makedirs(temp_dir)
+  os.chdir(temp_dir)
 
-logging.info('Using session ID: %s' % session_uuid)
-logging.info('Using temp dir: %s' % temp_dir)
-logging.info('Using input file: %s' % video_path)
+  logging.info('Using session ID: %s' % session_uuid)
+  logging.info('Using temp dir: %s' % temp_dir)
+  logging.info('Using input file: %s' % video_path)
 
 
-original_video_dir = os.path.dirname(video_path)
-video_basename = os.path.basename(video_path)
-video_name, video_ext = os.path.splitext(video_basename)
+  original_video_dir = os.path.dirname(video_path)
+  video_basename = os.path.basename(video_path)
+  video_name, video_ext = os.path.splitext(video_basename)
+
+except Exception, e:
+  logging.error('Something went wrong setting up temp paths and working files: %s' % e)
+  sys.exit(0)
 
 try:
   if COPY_ORIGINAL or SAVE_ALWAYS: 
