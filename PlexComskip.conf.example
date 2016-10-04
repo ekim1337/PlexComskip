@@ -9,6 +9,9 @@ comskip-path: /usr/local/bin/comskip
 # Path to the ffmpeg binary.
 ffmpeg-path: /usr/local/bin/ffmpeg
 
+# Nice level. Used for file copies, comskip analysis, and ffmpeg processing. 0 (default, full priority) - 20 (most nice)
+nice-level: 0
+
 [Logging]
 
 # Log file location.

@@ -17,7 +17,7 @@ if not os.path.exists(config_file_path):
   print 'Make a copy of PlexConfig.conf.example named PlexConfig.conf, modify as necessary, and place in the same directory as this script.'
   sys.exit(1)
 
-config = ConfigParser.SafeConfigParser({'comskip-ini-path' : os.path.join(os.path.dirname(os.path.realpath(__file__)), 'comskip.ini'), 'temp-root' : tempfile.gettempdir()})
+config = ConfigParser.SafeConfigParser({'comskip-ini-path' : os.path.join(os.path.dirname(os.path.realpath(__file__)), 'comskip.ini'), 'temp-root' : tempfile.gettempdir(), 'nice-level' : '0'})
 config.read(config_file_path)
 
 COMSKIP_PATH = os.path.expandvars(os.path.expanduser(config.get('Helper Apps', 'comskip-path')))
@@ -29,6 +29,7 @@ TEMP_ROOT = os.path.expandvars(os.path.expanduser(config.get('File Manipulation'
 COPY_ORIGINAL = config.getboolean('File Manipulation', 'copy-original')
 SAVE_ALWAYS = config.getboolean('File Manipulation', 'save-always')
 SAVE_FORENSICS = config.getboolean('File Manipulation', 'save-forensics')
+NICE_LEVEL = config.get('Helper Apps', 'nice-level')
 
 # Logging.
 session_uuid = str(uuid.uuid4())
@@ -80,6 +81,17 @@ try:
     logging.info('Using version: %s' % git_sha.strip())
 except: pass
 
+# Set our own nice level and tee up some args for subprocesses (unix-like OSes only).
+NICE_ARGS = []
+if sys.platform != 'win32':
+  try:
+    nice_int = max(int(NICE_LEVEL), 20)
+    if nice_int > 0:
+      os.nice(nice_int)
+      NICE_ARGS = ['nice', '-n', str(nice_int)]
+  except Exception, e:
+    logging.error('Couldn\'t set nice level to %s: %s' % (NICE_LEVEL, e))
+
 # On to the actual work.
 try:
   video_path = sys.argv[1]
@@ -109,7 +121,7 @@ try:
     temp_video_path = video_path
 
   # Process with comskip.
-  cmd = [COMSKIP_PATH, '--output', temp_dir, '--ini', COMSKIP_INI_PATH, temp_video_path]
+  cmd = NICE_ARGS + [COMSKIP_PATH, '--output', temp_dir, '--ini', COMSKIP_INI_PATH, temp_video_path]
   logging.info('[comskip] Command: %s' % cmd)
   subprocess.call(cmd)
 
@@ -151,7 +163,7 @@ try:
         duration_args = []
       else:
         duration_args = ['-t', str(segment[1] - segment[0])]
-      cmd = [FFMPEG_PATH, '-i', temp_video_path, '-ss', str(segment[0])]
+      cmd = NICE_ARGS + [FFMPEG_PATH, '-i', temp_video_path, '-ss', str(segment[0])]
       cmd.extend(duration_args)
       cmd.extend(['-c', 'copy', segment_file_name])
       logging.info('[ffmpeg] Command: %s' % cmd)
@@ -176,7 +188,7 @@ except Exception, e:
 
 logging.info('Going to concatenate %s files from the segment list.' % len(segment_files))
 try:
-  cmd = [FFMPEG_PATH, '-y', '-f', 'concat', '-i', segment_list_file_path, '-c', 'copy', os.path.join(temp_dir, video_basename)]
+  cmd = NICE_ARGS + [FFMPEG_PATH, '-y', '-f', 'concat', '-i', segment_list_file_path, '-c', 'copy', os.path.join(temp_dir, video_basename)]
   logging.info('[ffmpeg] Command: %s' % cmd)
   subprocess.call(cmd)
 
