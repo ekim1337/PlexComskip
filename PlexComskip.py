@@ -85,7 +85,7 @@ except: pass
 NICE_ARGS = []
 if sys.platform != 'win32':
   try:
-    nice_int = max(int(NICE_LEVEL), 20)
+    nice_int = max(min(int(NICE_LEVEL), 20), 0)
     if nice_int > 0:
       os.nice(nice_int)
       NICE_ARGS = ['nice', '-n', str(nice_int)]
