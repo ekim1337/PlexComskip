@@ -198,8 +198,8 @@ except Exception, e:
 
 logging.info('Sanity checking our work...')
 try:
-  input_size = os.path.getsize(video_path)
-  output_size = os.path.getsize(os.path.join(temp_dir, video_basename))
+  input_size = os.path.getsize(os.path.abspath(video_path))
+  output_size = os.path.getsize(os.path.abspath(os.path.join(temp_dir, video_basename)))
   if input_size and 1.01 > float(output_size) / float(input_size) > 0.99:
     logging.info('Output file size was too similar (doesn\'t look like we did much); we won\'t replace the original: %s -> %s' % (sizeof_fmt(input_size), sizeof_fmt(output_size)))
     cleanup_and_exit(temp_dir, SAVE_ALWAYS)
