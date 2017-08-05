@@ -102,6 +102,7 @@ if sys.platform != 'win32':
 # On to the actual work.
 try:
   video_path = sys.argv[1]
+  output_path = sys.argv[2]
   temp_dir = os.path.join(TEMP_ROOT, session_uuid)
   os.makedirs(temp_dir)
   os.chdir(temp_dir)
@@ -110,8 +111,10 @@ try:
   logging.info('Using temp dir: %s' % temp_dir)
   logging.info('Using input file: %s' % video_path)
 
+  output_video_dir = os.path.dirname(video_path)
+  if output_path:
+    output_video_dir = os.path.dirname(output_path)
 
-  original_video_dir = os.path.dirname(video_path)
   video_basename = os.path.basename(video_path)
   video_name, video_ext = os.path.splitext(video_basename)
 
@@ -212,8 +215,8 @@ try:
     cleanup_and_exit(temp_dir, SAVE_ALWAYS, CONVERSION_DID_NOT_MODIFY_ORIGINAL)
   elif input_size and 1.1 > float(output_size) / float(input_size) > 0.5:
     logging.info('Output file size looked sane, we\'ll replace the original: %s -> %s' % (sizeof_fmt(input_size), sizeof_fmt(output_size)))
-    logging.info('Copying the output file into place: %s -> %s' % (video_basename, original_video_dir))
-    shutil.copy(os.path.join(temp_dir, video_basename), original_video_dir)
+    logging.info('Copying the output file into place: %s -> %s' % (video_basename, output_video_dir))
+    shutil.copy(os.path.join(temp_dir, video_basename), output_video_dir)
     cleanup_and_exit(temp_dir, SAVE_ALWAYS)
   else:
     logging.info('Output file size looked wonky (too big or too small); we won\'t replace the original: %s -> %s' % (sizeof_fmt(input_size), sizeof_fmt(output_size)))
