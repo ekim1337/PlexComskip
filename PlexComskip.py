@@ -31,6 +31,12 @@ SAVE_ALWAYS = config.getboolean('File Manipulation', 'save-always')
 SAVE_FORENSICS = config.getboolean('File Manipulation', 'save-forensics')
 NICE_LEVEL = config.get('Helper Apps', 'nice-level')
 
+# Exit states
+CONVERSION_SUCCESS = 0
+CONVERSION_DID_NOT_MODIFY_ORIGINAL = 1
+CONVERSION_SANITY_CHECK_FAILED = 2
+EXCEPTION_HANDLED = 3
+
 # Logging.
 session_uuid = str(uuid.uuid4())
 fmt = '%%(asctime)-15s [%s] %%(message)s' % session_uuid[:6]
@@ -58,7 +64,7 @@ if len(sys.argv) < 2:
   sys.exit(1)
 
 # Clean up after ourselves and exit.
-def cleanup_and_exit(temp_dir, keep_temp=False):
+def cleanup_and_exit(temp_dir, keep_temp=False, exit_code=CONVERSION_SUCCESS):
   if keep_temp:
     logging.info('Leaving temp files in: %s' % temp_dir)
   else:
@@ -68,10 +74,11 @@ def cleanup_and_exit(temp_dir, keep_temp=False):
     except Exception, e:
       logging.error('Problem whacking temp dir: %s' % temp_dir)
       logging.error(str(e))
+      exit_code=EXCEPTION_HANDLED
 
   # Exit cleanly.
   logging.info('Done processing!')
-  sys.exit(0)
+  sys.exit(exit_code)
 
 # If we're in a git repo, let's see if we can report our sha.
 logging.info('PlexComskip got invoked from %s' % os.path.realpath(__file__))
@@ -110,7 +117,7 @@ try:
 
 except Exception, e:
   logging.error('Something went wrong setting up temp paths and working files: %s' % e)
-  sys.exit(0)
+  sys.exit(EXCEPTION_HANDLED)
 
 try:
   if COPY_ORIGINAL or SAVE_ALWAYS: 
@@ -127,7 +134,7 @@ try:
 
 except Exception, e:
   logging.error('Something went wrong during comskip analysis: %s' % e)
-  cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
+  cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS, EXCEPTION_HANDLED)
 
 edl_file = os.path.join(temp_dir, video_name + '.edl')
 logging.info('Using EDL: ' + edl_file)
@@ -171,7 +178,7 @@ try:
         subprocess.call(cmd)
       except Exception, e:
         logging.error('Exception running ffmpeg: %s' % e)
-        cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
+        cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS, EXCEPTION_HANDLED)
       
       # If the last drop segment ended at the end of the file, we will have written a zero-duration file.
       if os.path.exists(segment_file_name):
@@ -184,7 +191,7 @@ try:
 
 except Exception, e:
   logging.error('Something went wrong during splitting: %s' % e)
-  cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
+  cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS, EXCEPTION_HANDLED)
 
 logging.info('Going to concatenate %s files from the segment list.' % len(segment_files))
 try:
@@ -194,7 +201,7 @@ try:
 
 except Exception, e:
   logging.error('Something went wrong during concatenation: %s' % e)
-  cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
+  cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS, EXCEPTION_HANDLED)
 
 logging.info('Sanity checking our work...')
 try:
@@ -202,7 +209,7 @@ try:
   output_size = os.path.getsize(os.path.abspath(os.path.join(temp_dir, video_basename)))
   if input_size and 1.01 > float(output_size) / float(input_size) > 0.99:
     logging.info('Output file size was too similar (doesn\'t look like we did much); we won\'t replace the original: %s -> %s' % (sizeof_fmt(input_size), sizeof_fmt(output_size)))
-    cleanup_and_exit(temp_dir, SAVE_ALWAYS)
+    cleanup_and_exit(temp_dir, SAVE_ALWAYS, CONVERSION_DID_NOT_MODIFY_ORIGINAL)
   elif input_size and 1.1 > float(output_size) / float(input_size) > 0.5:
     logging.info('Output file size looked sane, we\'ll replace the original: %s -> %s' % (sizeof_fmt(input_size), sizeof_fmt(output_size)))
     logging.info('Copying the output file into place: %s -> %s' % (video_basename, original_video_dir))
@@ -210,7 +217,7 @@ try:
     cleanup_and_exit(temp_dir, SAVE_ALWAYS)
   else:
     logging.info('Output file size looked wonky (too big or too small); we won\'t replace the original: %s -> %s' % (sizeof_fmt(input_size), sizeof_fmt(output_size)))
-    cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
+    cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS, CONVERSION_SANITY_CHECK_FAILED)
 except Exception, e:
   logging.error('Something went wrong during sanity check: %s' % e)
-  cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS)
+  cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS, EXCEPTION_HANDLED)
