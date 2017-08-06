@@ -102,7 +102,6 @@ if sys.platform != 'win32':
 # On to the actual work.
 try:
   video_path = sys.argv[1]
-  output_path = sys.argv[2]
   temp_dir = os.path.join(TEMP_ROOT, session_uuid)
   os.makedirs(temp_dir)
   os.chdir(temp_dir)
@@ -112,8 +111,9 @@ try:
   logging.info('Using input file: %s' % video_path)
 
   output_video_dir = os.path.dirname(video_path)
-  if output_path:
-    output_video_dir = os.path.dirname(output_path)
+  if sys.argv[2:]:
+    logging.info('Output will be put in: %s' % sys.argv[2])
+    output_video_dir = os.path.dirname(sys.argv[2])
 
   video_basename = os.path.basename(video_path)
   video_name, video_ext = os.path.splitext(video_basename)
