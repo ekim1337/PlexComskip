@@ -22,6 +22,9 @@ console-logging: True
 # Specify a temp directory for interstitial files. This should be local, fast, and have enough free space for ~2x your largest video. Defaults to system temp location.
 # temp-root: R:\Temp
 
+# Specify a temp directory for comskip files. Defaults to system temp location.
+# comskip-root: R:\Temp
+
 # Should we copy the original file to the temp directory? Useful if disk access to the original is slower than your temp location. Defaults to False.
 copy-original: False
 

@@ -17,7 +17,12 @@ if not os.path.exists(config_file_path):
   print 'Make a copy of PlexConfig.conf.example named PlexConfig.conf, modify as necessary, and place in the same directory as this script.'
   sys.exit(1)
 
-config = ConfigParser.SafeConfigParser({'comskip-ini-path' : os.path.join(os.path.dirname(os.path.realpath(__file__)), 'comskip.ini'), 'temp-root' : tempfile.gettempdir(), 'nice-level' : '0'})
+config = ConfigParser.SafeConfigParser({
+  'comskip-ini-path' : os.path.join(os.path.dirname(os.path.realpath(__file__)), 'comskip.ini'),
+  'temp-root' : tempfile.gettempdir(),
+  'comskip-root' : tempfile.gettempdir(),
+  'nice-level' : '0'
+})
 config.read(config_file_path)
 
 COMSKIP_PATH = os.path.expandvars(os.path.expanduser(config.get('Helper Apps', 'comskip-path')))
@@ -26,6 +31,7 @@ FFMPEG_PATH = os.path.expandvars(os.path.expanduser(config.get('Helper Apps', 'f
 LOG_FILE_PATH = os.path.expandvars(os.path.expanduser(config.get('Logging', 'logfile-path')))
 CONSOLE_LOGGING = config.getboolean('Logging', 'console-logging')
 TEMP_ROOT = os.path.expandvars(os.path.expanduser(config.get('File Manipulation', 'temp-root')))
+COMSKIP_ROOT = os.path.expandvars(os.path.expanduser(config.get('File Manipulation', 'comskip-root')))
 COPY_ORIGINAL = config.getboolean('File Manipulation', 'copy-original')
 SAVE_ALWAYS = config.getboolean('File Manipulation', 'save-always')
 SAVE_FORENSICS = config.getboolean('File Manipulation', 'save-forensics')
@@ -67,13 +73,14 @@ if len(sys.argv) < 2:
 # Clean up after ourselves and exit.
 def cleanup_and_exit(temp_dir, keep_temp=False, exit_code=CONVERSION_SUCCESS):
   if keep_temp:
-    logging.info('Leaving temp files in: %s' % temp_dir)
+    logging.info('Leaving temp files in: %s, %s' % (temp_dir, comskip_out))
   else:
     try:
       os.chdir(os.path.expanduser('~'))  # Get out of the temp dir before we nuke it (causes issues on NTFS)
       shutil.rmtree(temp_dir)
+      shutil.rmtree(comskip_out)
     except Exception, e:
-      logging.error('Problem whacking temp dir: %s' % temp_dir)
+      logging.error('Problem whacking temp dirs: %s, %s' % (temp_dir, comskip_out))
       logging.error(str(e))
       exit_code=EXCEPTION_HANDLED
 
@@ -104,11 +111,15 @@ if sys.platform != 'win32':
 try:
   video_path = sys.argv[1]
   temp_dir = os.path.join(TEMP_ROOT, session_uuid)
+  comskip_out = os.path.join(COMSKIP_ROOT, session_uuid)
   os.makedirs(temp_dir)
+  if temp_dir != comskip_out:
+    os.makedirs(comskip_out)
   os.chdir(temp_dir)
 
   logging.info('Using session ID: %s' % session_uuid)
   logging.info('Using temp dir: %s' % temp_dir)
+  logging.info('Using comskip dir: %s' % comskip_out)
   logging.info('Using input file: %s' % video_path)
 
   output_video_dir = os.path.dirname(video_path)
@@ -132,7 +143,7 @@ try:
     temp_video_path = video_path
 
   # Process with comskip.
-  cmd = NICE_ARGS + [COMSKIP_PATH, '--output', temp_dir, '--ini', COMSKIP_INI_PATH, temp_video_path]
+  cmd = NICE_ARGS + [COMSKIP_PATH, '--output', comskip_out, '--ini', COMSKIP_INI_PATH, temp_video_path]
   logging.info('[comskip] Command: %s' % cmd)
   comskip_status = subprocess.call(cmd)
   if comskip_status != 0:
@@ -144,7 +155,7 @@ except Exception, e:
   logging.error('Something went wrong during comskip analysis: %s' % e)
   cleanup_and_exit(temp_dir, SAVE_ALWAYS or SAVE_FORENSICS, EXCEPTION_HANDLED)
 
-edl_file = os.path.join(temp_dir, video_name + '.edl')
+edl_file = os.path.join(comskip_out, video_name + '.edl')
 logging.info('Using EDL: ' + edl_file)
 try:
   segments = []
