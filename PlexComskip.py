@@ -36,6 +36,7 @@ CONVERSION_SUCCESS = 0
 CONVERSION_DID_NOT_MODIFY_ORIGINAL = 1
 CONVERSION_SANITY_CHECK_FAILED = 2
 EXCEPTION_HANDLED = 3
+COMSKIP_FAILED = 4
 
 # Logging.
 session_uuid = str(uuid.uuid4())
@@ -133,7 +134,11 @@ try:
   # Process with comskip.
   cmd = NICE_ARGS + [COMSKIP_PATH, '--output', temp_dir, '--ini', COMSKIP_INI_PATH, temp_video_path]
   logging.info('[comskip] Command: %s' % cmd)
-  subprocess.call(cmd)
+  comskip_status = subprocess.call(cmd)
+  if comskip_status != 0:
+    logging.error('Comskip did not exit properly with code: %s' % comskip_status)
+    cleanup_and_exit(temp_dir, False, COMSKIP_FAILED)
+    #raise Exception('Comskip did not exit properly')
 
 except Exception, e:
   logging.error('Something went wrong during comskip analysis: %s' % e)
