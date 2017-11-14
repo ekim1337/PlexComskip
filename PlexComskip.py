@@ -109,7 +109,7 @@ if sys.platform != 'win32':
 
 # On to the actual work.
 try:
-  video_path = sys.argv[1]
+  video_path = os.path.abspath(sys.argv[1])
   temp_dir = os.path.join(TEMP_ROOT, session_uuid)
   comskip_out = os.path.join(COMSKIP_ROOT, session_uuid)
   os.makedirs(temp_dir)
